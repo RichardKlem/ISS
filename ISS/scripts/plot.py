@@ -24,10 +24,11 @@ plt.grid(True)
 plt.show()
 
 x_fft = fftpack.fft(xn)
-y_fft = fftpack.fft(y)
 plt.plot(t, x_fft)
 plt.grid(True)
 plt.show()
+
+y_fft = fftpack.fft(y)
 plt.plot(t, y_fft)
 plt.grid(True)
 plt.show()
