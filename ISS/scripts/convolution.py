@@ -1,17 +1,16 @@
 import matplotlib.pyplot as plt
-from scipy import signal, fftpack
-from scipy.signal import butter
+from scipy import signal
 import numpy as np
 
-t = np.linspace(-1, 1, 128)  # signal pro cosin
-sig = np.repeat([0., 1., 0., 0.5], 256)  # signál
-sig = sig + np.random.randn(len(sig)) * 0.05  # přídání šumu
-h = np.sin(np.pi * t/2) + 1  # konvoluční funkce = např. cosinový zvon
+t = np.linspace(-1, 1, 128)  # vzorky pro h
+x = np.repeat([0., 1., 0., 0.5], 256)  # signál
+x = x + np.random.randn(len(x)) * 0.05  # přídání šumu
+h = np.sin(np.pi * t / 2) + 1  # konvoluční funkce např. cos(np.pi * t) + 1
 
-filtered = signal.convolve(sig, h, mode='same') / sum(h)
+filtered = signal.convolve(x, h, mode='same') / sum(h)
 
 fig, (ax_orig, ax_win, ax_filt) = plt.subplots(3, 1, sharex=True)
-ax_orig.plot(sig)
+ax_orig.plot(x)
 ax_orig.set_title('Original pulse')
 
 ax_win.plot(h)
