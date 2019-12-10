@@ -36,8 +36,9 @@ import matplotlib.pyplot as plt
 import soundfile as sf
 import IPython
 from scipy.signal import spectrogram, lfilter, freqz, tf2zpk
+from scipy.stats import pearsonr
 
-s, fs = sf.read('sa1.wav')
+s, fs = sf.read('sx368.wav')
 
 s = s[:s.size]
 t = np.arange(s.size) / fs
@@ -92,7 +93,9 @@ ax[1].grid(alpha=0.5, linestyle='--')
 plt.tight_layout()
 plt.show()
 
-f, t, sgr = spectrogram(s, fs, noverlap=0.015*fs)  #prekryti 15ms
+f, t, sgr = spectrogram(s, fs, window='hamming', noverlap=0.015*fs, nfft=255*2+1)  #prekryti 15ms
+
+print((sgr.shape))
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr+1e-20)
@@ -107,6 +110,43 @@ cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 plt.tight_layout()
 
 plt.show()
+
+A = [[0]*256 for i in range(16)]  # naplním nulami
+# doplnim jednicky vzdy o jeedna posunute
+for j in range(16):
+    for i in range(16):
+        A[j][i + (j*16)] = 1
+
+F = np.matmul(A, sgr)  # F = A * P
+
+# ____________   UKOL 5  _____________
+def column(matrix, i):
+    return [row[i] for row in matrix]
+
+s_q, fs_q = sf.read('q2_upr.wav') #načtení frekvence a signálu
+s_q = s_q - s_q.mean(axis=0) #ustřednění signálu pomocí odečtení střední hodnoty
+
+f_q, t_q, sgr_q = spectrogram(s_q, fs_q, window='hamming', noverlap=0.015*fs, nfft=256*2-1)
+
+
+F_q = np.matmul(A, sgr_q)  # F_q = A * P_q
+
+print(F.shape)
+print(F_q.shape)
+
+pears_result_res_list = [] #list pro ukládání hodnot z funkce pearsonr
+#průchod
+pears_result = 0  # aktualni soucet korelaci
+for i in range(0, sgr.shape[1] - sgr_q.shape[1]):
+    if i % 250 == 0:
+        print(i)
+    for j in range(sgr_q.shape[1]):
+        pears_result += (pearsonr(column(F_q, j), column(F, i + j))[0])
+    pears_result_res_list.append(pears_result)
+    pears_result = 0
+print(max(pears_result_res_list))
+print(pears_result_res_list.index(max(pears_result_res_list)))
+
 
 #plt.savefig('test.pdf')
 #"""  # end2
