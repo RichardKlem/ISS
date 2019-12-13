@@ -55,11 +55,11 @@ from scipy.stats import pearsonr
 
 
 sentence = 'sx222.wav'
-query2 = 'q1_straightforward.wav'
-query1 = 'q2_pathological.wav'
+query1 = 'q1_straightforward.wav'
+query2 = 'q2_pathological.wav'
 
 s, fs = sf.read(sentence)
-s = s[:s.size]  #TODO je to treba???
+#s = s[:s.size]  #TODO je to treba???
 t = np.arange(s.size) / fs
 plt.figure(figsize=(6, 3))
 plt.plot(t, s)
@@ -90,10 +90,7 @@ G = 10 * np.log10(1/N * np.abs(s_seg_spec)**2)
 """
 f, t, sgr = spectrogram(s, fs, window='hamming', nperseg=int(0.025*fs),
                         noverlap=0.015*fs, nfft=255*2+1)
-#prekryti
-# 15ms
-print(t)
-print((sgr.shape))
+
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr+1e-20)
@@ -140,43 +137,40 @@ pears_result_res_list = [] #list pro ukládání hodnot z funkce pearsonr
 #průchod
 pears_result = 0  # aktualni soucet korelaci
 for i in range(0, sgr.shape[1] - sgr_q.shape[1], 1):
-    #if i % 250 == 0:
-     #   print(i)
     for j in range(sgr_q.shape[1]):
         pears_result += (pearsonr(column(F_q, j), column(F, i + j))[0])
+    pears_result /= sgr_q.shape[1]
     pears_result_res_list.append(pears_result)
     pears_result = 0
-#print(max(pears_result_res_list))
-#print(pears_result_res_list.index(max(pears_result_res_list)))
 
 pears_result_res_list2 = [] #list pro ukládání hodnot z funkce pearsonr
 #průchod
 pears_result2 = 0  # aktualni soucet korelaci
 for i in range(0, sgr.shape[1] - sgr_q2.shape[1], 1):
-    #if i % 250 == 0:
-     #   print(i)
     for j in range(sgr_q2.shape[1]):
         pears_result2 += (pearsonr(column(F_q2, j), column(F, i + j))[0])
+    pears_result2 /= sgr_q2.shape[1]
     pears_result_res_list2.append(pears_result2)
     pears_result2 = 0
 
 
+
 plt.figure(figsize=(6, 3))
 
-plt.plot(np.arange(len(pears_result_res_list))/100, pears_result_res_list)
-plt.plot(np.arange(len(pears_result_res_list2))/100, pears_result_res_list2)
-
-#plt.legend()
+plt.plot(np.arange(len(pears_result_res_list))/100, pears_result_res_list, label='straightforward')
+plt.plot(np.arange(len(pears_result_res_list2))/100, pears_result_res_list2, label='pathological')
+plt.gca().set_xlim(right=s.size/fs)
+plt.legend()
 
 plt.gca().set_xlabel('$t[s]$')
-plt.gca().set_title('slovo')
+plt.gca().set_xlabel('$scores$')
+#plt.gca().set_title('Průběh skóre')
 #plt.gca().set
 
 plt.tight_layout()
 plt.show()
 
-sys.exit(0)
-
+"""
 ax = plt.plot()
 
 # np.arange(n) vytváří pole 0..n-1 podobně jako obyč Pythonovský range
@@ -191,14 +185,4 @@ plt.tight_layout()
 plt.show()
 
 #plt.savefig('test.pdf')
-#"""  # end2
-
-
-# """  start
-# ______________THIRD LESSON________________
-
-
-
-
-
-#"""  end
+#"""
