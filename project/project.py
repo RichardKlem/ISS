@@ -1,7 +1,3 @@
-import os
-import sys
-import statistics
-
 """  # start1
 # ______________FIRST LESSON________________
 # soundfile - neni potreba normalizace
@@ -27,54 +23,6 @@ import numpy as np
 plt.figure()
 plt.plot(np.arange(100), np.arange(100))
 
-"""  # end1
-
-#"""  # start2
-# ______________SECOND LESSON________________
-import numpy as np
-import matplotlib.pyplot as plt
-import soundfile as sf
-import IPython
-from scipy.signal import spectrogram, lfilter, freqz, tf2zpk
-from scipy.stats import pearsonr
-
-s, fs = sf.read('sx368.wav')
-
-s = s[:s.size]
-t = np.arange(s.size) / fs
-print(s.size)
-plt.figure(figsize=(6, 3))
-plt.plot(t, s)
-
-# plt.gca() vraci handle na aktualni Axes objekt,
-# ktery nam umozni kontrolovat ruzne vlastnosti aktualniho grafu
-# napr. popisy os
-# viz https://matplotlib.org/users/pyplot_tutorial.html#working-with-multiple-figures-and-axes
-plt.gca().set_xlabel('$t[s]$')
-plt.gca().set_title('Zvukový signál')
-
-plt.tight_layout()
-plt.show()
-
-
-s = s - statistics.mean(s)  # usmerneni od DC slozky
-
-odkud = 0     # začátek segmentu v sekundách - od zacatku
-kolik = 0.02  # délka segmentu v sekundách - 20ms
-
-odkud_vzorky = int(odkud * fs)          # začátek segmentu ve vzorcích
-pokud_vzorky = int((odkud+kolik) * fs)  # konec segmentu ve vzorcích
-
-s_seg = s[odkud_vzorky:pokud_vzorky]
-#print(s_seg)
-#sys.exit(0)
-N = s_seg.size  # sirka matice spektrogramu
-print(N)
-s_seg_spec = np.fft.fft(s_seg)
-print(len(s_seg_spec))
-G = 10 * np.log10(1/N * np.abs(s_seg_spec)**2)
-print(len(G))
-
 _, ax = plt.subplots(2, 1)
 
 # np.arange(n) vytváří pole 0..n-1 podobně jako obyč Pythonovský range
@@ -93,8 +41,58 @@ ax[1].grid(alpha=0.5, linestyle='--')
 plt.tight_layout()
 plt.show()
 
-f, t, sgr = spectrogram(s, fs, window='hamming', noverlap=0.015*fs, nfft=255*2+1)  #prekryti 15ms
+"""  # end1
 
+#"""  # start2
+# ______________SECOND LESSON________________
+import sys
+import statistics
+import numpy as np
+import matplotlib.pyplot as plt
+import soundfile as sf
+from scipy.signal import spectrogram, lfilter, freqz, tf2zpk
+from scipy.stats import pearsonr
+
+
+sentence = 'sx222.wav'
+query2 = 'q1_straightforward.wav'
+query1 = 'q2_pathological.wav'
+
+s, fs = sf.read(sentence)
+s = s[:s.size]  #TODO je to treba???
+t = np.arange(s.size) / fs
+plt.figure(figsize=(6, 3))
+plt.plot(t, s)
+
+# plt.gca() vraci handle na aktualni Axes objekt,
+# ktery nam umozni kontrolovat ruzne vlastnosti aktualniho grafu
+# napr. popisy os
+# viz https://matplotlib.org/users/pyplot_tutorial.html#working-with-multiple-figures-and-axes
+plt.gca().set_xlabel('$t[s]$')
+plt.gca().set_title('Zvukový signál')
+
+plt.tight_layout()
+plt.show()
+
+
+s = s - statistics.mean(s)  # usmerneni od DC slozky
+"""
+odkud = 0     # začátek segmentu v sekundách - od zacatku
+kolik = 0.02  # délka segmentu v sekundách - 20ms
+
+odkud_vzorky = int(odkud * fs)          # začátek segmentu ve vzorcích
+pokud_vzorky = int((odkud+kolik) * fs)  # konec segmentu ve vzorcích
+
+s_seg = s[odkud_vzorky:pokud_vzorky]
+N = s_seg.size  # sirka matice spektrogramu
+s_seg_spec = np.fft.fft(s_seg)
+G = 10 * np.log10(1/N * np.abs(s_seg_spec)**2)
+"""
+f, t, sgr = spectrogram(s, fs, window='hamming', nperseg=int(0.025*fs),
+                        noverlap=0.015*fs, nfft=255*2+1)
+#prekryti
+# 15ms
+print(t)
 print((sgr.shape))
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
@@ -123,30 +121,74 @@ F = np.matmul(A, sgr)  # F = A * P
 def column(matrix, i):
     return [row[i] for row in matrix]
 
-s_q, fs_q = sf.read('q2_upr.wav') #načtení frekvence a signálu
+s_q, fs_q = sf.read(query1) #načtení frekvence a signálu
 s_q = s_q - s_q.mean(axis=0) #ustřednění signálu pomocí odečtení střední hodnoty
 
-f_q, t_q, sgr_q = spectrogram(s_q, fs_q, window='hamming', noverlap=0.015*fs, nfft=256*2-1)
-
-
+f_q, t_q, sgr_q = spectrogram(s_q, fs_q, window='hamming', nperseg=int(0.025*fs), noverlap=0.015*fs, nfft=256*2-1)
 F_q = np.matmul(A, sgr_q)  # F_q = A * P_q
 
-print(F.shape)
-print(F_q.shape)
+s_q, fs_q = sf.read(query2) #načtení frekvence a signálu
+s_q = s_q - s_q.mean(axis=0) #ustřednění signálu pomocí odečtení střední hodnoty
+
+f_q2, t_q2, sgr_q2 = spectrogram(s_q, fs_q, window='hamming', nperseg=int(0.025*fs), noverlap=0.015*fs, nfft=256*2-1)
+
+
+F_q2 = np.matmul(A, sgr_q2)  # F_q = A * P_q
+
 
 pears_result_res_list = [] #list pro ukládání hodnot z funkce pearsonr
 #průchod
 pears_result = 0  # aktualni soucet korelaci
-for i in range(0, sgr.shape[1] - sgr_q.shape[1]):
-    if i % 250 == 0:
-        print(i)
+for i in range(0, sgr.shape[1] - sgr_q.shape[1], 1):
+    #if i % 250 == 0:
+     #   print(i)
     for j in range(sgr_q.shape[1]):
         pears_result += (pearsonr(column(F_q, j), column(F, i + j))[0])
     pears_result_res_list.append(pears_result)
     pears_result = 0
-print(max(pears_result_res_list))
-print(pears_result_res_list.index(max(pears_result_res_list)))
+#print(max(pears_result_res_list))
+#print(pears_result_res_list.index(max(pears_result_res_list)))
 
+pears_result_res_list2 = [] #list pro ukládání hodnot z funkce pearsonr
+#průchod
+pears_result2 = 0  # aktualni soucet korelaci
+for i in range(0, sgr.shape[1] - sgr_q2.shape[1], 1):
+    #if i % 250 == 0:
+     #   print(i)
+    for j in range(sgr_q2.shape[1]):
+        pears_result2 += (pearsonr(column(F_q2, j), column(F, i + j))[0])
+    pears_result_res_list2.append(pears_result2)
+    pears_result2 = 0
+
+
+plt.figure(figsize=(6, 3))
+
+plt.plot(np.arange(len(pears_result_res_list))/100, pears_result_res_list)
+plt.plot(np.arange(len(pears_result_res_list2))/100, pears_result_res_list2)
+
+#plt.legend()
+
+plt.gca().set_xlabel('$t[s]$')
+plt.gca().set_title('slovo')
+#plt.gca().set
+
+plt.tight_layout()
+plt.show()
+
+sys.exit(0)
+
+ax = plt.plot()
+
+# np.arange(n) vytváří pole 0..n-1 podobně jako obyč Pythonovský range
+ax.plot(np.arange(((len(pears_result_res_list)))), pears_result_res_list)
+ax.set_xlabel('$t[s]$')
+ax.set_title('Segment signalu $s$')
+ax.grid(alpha=0.5, linestyle='--')
+
+
+
+plt.tight_layout()
+plt.show()
 
 #plt.savefig('test.pdf')
 #"""  # end2
