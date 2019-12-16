@@ -43,7 +43,7 @@ f, t, sgr = spectrogram(s, fs, window='hamming', nperseg=int(0.025 * fs),
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr + 1e-20)
 
-# tento kód odkomentovat pro vytištění spektogramu
+# zakomentovat následující tři uvozovky pro vytištění spektogramu
 """
 plt.figure(figsize=(9, 3))
 plt.pcolormesh(t, f, sgr_log)
@@ -97,8 +97,10 @@ for i in range(0, sgr.shape[1] - sgr_q.shape[1], 1):
         pears_result += (pearsonr(column(F_q, j), column(F, i + j))[0])
     # děleno počtem vektorů pro zjištění pravděpodobnosti výskytu
     pears_result /= sgr_q.shape[1]
+    """  # zakomentovat následující tři uvozovky pro tisk hitů
     if pears_result >= 0.84:
         print('trustworthy', i*fs_q/100)
+    #"""
     pears_result_res_list.append(pears_result)
     pears_result = 0
 
@@ -108,8 +110,10 @@ for i in range(0, sgr.shape[1] - sgr_q2.shape[1], 1):
     for j in range(sgr_q2.shape[1]):
         pears_result2 += (pearsonr(column(F_q2, j), column(F, i + j))[0])
     pears_result2 /= sgr_q2.shape[1]
+    """  # zakomentovat následující tři uvozovky pro tisk hitů
     if pears_result2 >= 0.87:
         print('pathological ', i*fs_q2/100)
+    #"""
     pears_result_res_list2.append(pears_result2)
     pears_result2 = 0
 
