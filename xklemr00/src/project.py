@@ -15,7 +15,7 @@ work_dir = os.path.dirname(os.getcwd())
 sentences_root = 'sentences'
 queries_root = 'queries'
 
-sentence_name = 'sa1.wav'
+sentence_name = 'sx132.wav'  # zde se volí, kterou větu chceme analyzovat
 query1_name = 'q1.wav'
 query2_name = 'q2.wav'
 
@@ -97,6 +97,8 @@ for i in range(0, sgr.shape[1] - sgr_q.shape[1], 1):
         pears_result += (pearsonr(column(F_q, j), column(F, i + j))[0])
     # děleno počtem vektorů pro zjištění pravděpodobnosti výskytu
     pears_result /= sgr_q.shape[1]
+    if pears_result >= 0.84:
+        print('trustworthy', i*fs_q/100)
     pears_result_res_list.append(pears_result)
     pears_result = 0
 
@@ -106,6 +108,8 @@ for i in range(0, sgr.shape[1] - sgr_q2.shape[1], 1):
     for j in range(sgr_q2.shape[1]):
         pears_result2 += (pearsonr(column(F_q2, j), column(F, i + j))[0])
     pears_result2 /= sgr_q2.shape[1]
+    if pears_result2 >= 0.87:
+        print('pathological ', i*fs_q2/100)
     pears_result_res_list2.append(pears_result2)
     pears_result2 = 0
 
@@ -116,6 +120,7 @@ ax[2].plot(np.arange(len(pears_result_res_list2)) / 100,
            pears_result_res_list2,
            label='pathological')
 ax[2].set_xlim(right=s.size / fs)
+ax[2].set_ylim(top=1)
 ax[2].legend()
 ax[2].set_xlabel('t')
 ax[2].set_ylabel('scores')
